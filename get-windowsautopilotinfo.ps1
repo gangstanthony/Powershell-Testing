@@ -1,115 +1,5 @@
-<#PSScriptInfo
- 
-.VERSION 3.5
- 
-.GUID ebf446a3-3362-4774-83c0-b7299410b63f
- 
-.AUTHOR Michael Niehaus
- 
-.COMPANYNAME Microsoft
- 
-.COPYRIGHT
- 
-.TAGS Windows AutoPilot
- 
-.LICENSEURI
- 
-.PROJECTURI
- 
-.ICONURI
- 
-.EXTERNALMODULEDEPENDENCIES
- 
-.REQUIREDSCRIPTS
- 
-.EXTERNALSCRIPTDEPENDENCIES
- 
-.RELEASENOTES
-Version 1.0: Original published version.
-Version 1.1: Added -Append switch.
-Version 1.2: Added -Credential switch.
-Version 1.3: Added -Partner switch.
-Version 1.4: Switched from Get-WMIObject to Get-CimInstance.
-Version 1.5: Added -GroupTag parameter.
-Version 1.6: Bumped version number (no other change).
-Version 2.0: Added -Online parameter.
-Version 2.1: Bug fix.
-Version 2.3: Updated comments.
-Version 2.4: Updated "online" import logic to wait for the device to sync, added new parameter.
-Version 2.5: Added AssignedUser for Intune importing, and AssignedComputerName for online Intune importing.
-Version 2.6: Added support for app-based authentication via Connect-MSGraphApp.
-Version 2.7: Added new Reboot option for use with -Online -Assign.
-Version 2.8: Fixed up parameter sets.
-Version 2.9: Fixed typo installing AzureAD module.
-Version 3.0: Fixed typo for app-based auth, added logic to explicitly install NuGet (silently).
-Version 3.2: Fixed logic to explicitly install NuGet (silently).
-Version 3.3: Added more logging and error handling for group membership.
-Version 3.4: Added logic to verify that devices were added successfully. Fixed a bug that could cause all Autopilot devices to be added to the specified AAD group.
-Version 3.5: Added logic to display the serial number of the gathered device.
-#>
 
-<#
-.SYNOPSIS
-Retrieves the Windows AutoPilot deployment details from one or more computers
- 
-MIT LICENSE
- 
-Copyright (c) 2020 Microsoft
- 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- 
-.DESCRIPTION
-This script uses WMI to retrieve properties needed for a customer to register a device with Windows Autopilot. Note that it is normal for the resulting CSV file to not collect a Windows Product ID (PKID) value since this is not required to register a device. Only the serial number and hardware hash will be populated.
-.PARAMETER Name
-The names of the computers. These can be provided via the pipeline (property name Name or one of the available aliases, DNSHostName, ComputerName, and Computer).
-.PARAMETER OutputFile
-The name of the CSV file to be created with the details for the computers. If not specified, the details will be returned to the PowerShell
-pipeline.
-.PARAMETER Append
-Switch to specify that new computer details should be appended to the specified output file, instead of overwriting the existing file.
-.PARAMETER Credential
-Credentials that should be used when connecting to a remote computer (not supported when gathering details from the local computer).
-.PARAMETER Partner
-Switch to specify that the created CSV file should use the schema for Partner Center (using serial number, make, and model).
-.PARAMETER GroupTag
-An optional tag value that should be included in a CSV file that is intended to be uploaded via Intune (not supported by Partner Center or Microsoft Store for Business).
-.PARAMETER AssignedUser
-An optional value specifying the UPN of the user to be assigned to the device. This can only be specified for Intune (not supported by Partner Center or Microsoft Store for Business).
-.PARAMETER Online
-Add computers to Windows Autopilot via the Intune Graph API
-.PARAMETER AssignedComputerName
-An optional value specifying the computer name to be assigned to the device. This can only be specified with the -Online switch and only works with AAD join scenarios.
-.PARAMETER AddToGroup
-Specifies the name of the Azure AD group that the new device should be added to.
-.PARAMETER Assign
-Wait for the Autopilot profile assignment. (This can take a while for dynamic groups.)
-.PARAMETER Reboot
-Reboot the device after the Autopilot profile has been assigned (necessary to download the profile and apply the computer name, if specified).
-.EXAMPLE
-.\Get-WindowsAutoPilotInfo.ps1 -ComputerName MYCOMPUTER -OutputFile .\MyComputer.csv
-.EXAMPLE
-.\Get-WindowsAutoPilotInfo.ps1 -ComputerName MYCOMPUTER -OutputFile .\MyComputer.csv -GroupTag Kiosk
-.EXAMPLE
-.\Get-WindowsAutoPilotInfo.ps1 -ComputerName MYCOMPUTER -OutputFile .\MyComputer.csv -GroupTag Kiosk -AssignedUser JohnDoe@contoso.com
-.EXAMPLE
-.\Get-WindowsAutoPilotInfo.ps1 -ComputerName MYCOMPUTER -OutputFile .\MyComputer.csv -Append
-.EXAMPLE
-.\Get-WindowsAutoPilotInfo.ps1 -ComputerName MYCOMPUTER1,MYCOMPUTER2 -OutputFile .\MyComputers.csv
-.EXAMPLE
-Get-ADComputer -Filter * | .\GetWindowsAutoPilotInfo.ps1 -OutputFile .\MyComputers.csv
-.EXAMPLE
-Get-CMCollectionMember -CollectionName "All Systems" | .\GetWindowsAutoPilotInfo.ps1 -OutputFile .\MyComputers.csv
-.EXAMPLE
-.\Get-WindowsAutoPilotInfo.ps1 -ComputerName MYCOMPUTER1,MYCOMPUTER2 -OutputFile .\MyComputers.csv -Partner
-.EXAMPLE
-.\GetWindowsAutoPilotInfo.ps1 -Online
- 
-#>
-
+function get-windowsautopilotinfo {
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
     [Parameter(Mandatory=$False,ValueFromPipeline=$True,ValueFromPipelineByPropertyName=$True,Position=0)][alias("DNSHostName","ComputerName","Computer")] [String[]] $Name = @("localhost"),
@@ -448,3 +338,8 @@ End
         }
     }
 }
+}
+
+$null = md c:\temp
+get-windowsautopilotinfo -outputfile c:\temp\hwid.csv
+gc c:\temp\hwid.csv
