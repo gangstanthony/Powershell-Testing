@@ -340,6 +340,8 @@ End
 }
 }
 
-$null = md c:\temp 2&>1
+if (!(test-path c:\temp)) {
+    md c:\temp
+}
 get-windowsautopilotinfo -outputfile c:\temp\hwid.csv
 gc c:\temp\hwid.csv
