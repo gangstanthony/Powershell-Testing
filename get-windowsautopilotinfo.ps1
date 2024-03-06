@@ -340,6 +340,6 @@ End
 }
 }
 
-$null = md c:\temp
+$null = md c:\temp 2&>1
 get-windowsautopilotinfo -outputfile c:\temp\hwid.csv
 gc c:\temp\hwid.csv
