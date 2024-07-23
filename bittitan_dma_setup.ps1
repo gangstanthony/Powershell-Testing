@@ -6,6 +6,10 @@ iwr https://github.com/gangstanthony/Powershell-Testing/raw/main/bittitan_dma_se
 
 ############
 
+if (!(test-path c:\temp)) {
+  md c:\temp
+}
+
 $(
 write-output 'reg query HKLM\SOFTWARE\Microsoft\.NETFramework\v2.0.50727 /v SystemDefaultTlsVersions'
 reg query HKLM\SOFTWARE\Microsoft\.NETFramework\v2.0.50727 /v SystemDefaultTlsVersions
